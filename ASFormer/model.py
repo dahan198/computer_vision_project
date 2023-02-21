@@ -407,9 +407,6 @@ class Trainer:
                   (epoch + 1, train_loss, acc, es, f1s[0], f1s[1], f1s[2]))
             run.log({"train/loss": train_loss, "train/accuracy": acc, "train/edit_score": es,
                      "train/F1@10": f1s[0], "train/F1@25": f1s[1], "train/F1@50": f1s[2]})
-            run.log({
-                'train_loss': train_loss
-            })
 
             self.test(batch_gen_tst, epoch, run)
             torch.save(self.model.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + ".model")
