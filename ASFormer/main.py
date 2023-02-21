@@ -59,22 +59,6 @@ def main(exp_name):
         lr = lrs[split]
         channel_mask_rate = channel_mask_rates[split]
 
-        config = dict(
-            split=split,
-            epochs=num_epochs,
-            num_layers=num_layers,
-            num_f_maps=num_f_maps,
-            channel_mask_rate=channel_mask_rate,
-            lr=lr
-        )
-
-        wandb.init(
-            project="cv-hyp-test-report",
-            config=config,
-        )
-
-        wandb.run.name = exp_name + "fold" + str(split)
-
         valid_files = set(
             map(lambda x: x.split('.csv')[0], (open("../APAS/folds/valid " + str(split) + ".txt").readlines())))
         test_files = set(
@@ -93,6 +77,22 @@ def main(exp_name):
 
         trainer = Trainer(num_layers, 2, 2, num_f_maps, features_dim, num_classes, channel_mask_rate)
         if args.action == "train":
+            config = dict(
+                split=split,
+                epochs=num_epochs,
+                num_layers=num_layers,
+                num_f_maps=num_f_maps,
+                channel_mask_rate=channel_mask_rate,
+                lr=lr,
+                future_window=future_window
+            )
+
+            wandb.init(
+                project="train_report",
+                config=config,
+            )
+
+            wandb.run.name = exp_name + "fold" + str(split)
             batch_gen = BatchGenerator(num_classes, actions_dict, gt_path, features_path, sample_rate)
             batch_gen.read_data(train_files)
 
@@ -102,6 +102,13 @@ def main(exp_name):
             trainer.train(model_dir, batch_gen, num_epochs, bz, lr, batch_gen_tst, train_data_len, wandb)
 
         if args.action == "predict":
+            config = dict(
+                future_window=future_window
+            )
+            wandb.init(
+                project="test_report",
+                config=config,
+            )
             batch_gen_tst = BatchGenerator(num_classes, actions_dict, gt_path, features_path, sample_rate)
             batch_gen_tst.read_data(test_files)
             trainer.predict(model_dir, results_dir, features_path, batch_gen_tst, num_epochs, actions_dict, sample_rate,
