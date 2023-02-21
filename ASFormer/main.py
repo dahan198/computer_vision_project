@@ -50,7 +50,7 @@ for k, v in actions_dict.items():
 num_classes = len(actions_dict)
 
 
-def main():
+def main(exp_name):
     for split in range(5):
 
         num_epochs = nums_epochs[split]
@@ -72,6 +72,8 @@ def main():
             project="cv-hyp-test-report",
             config=config,
         )
+
+        wandb.run.name = exp_name + "fold" + str(split)
 
         valid_files = set(
             map(lambda x: x.split('.csv')[0], (open("../APAS/folds/valid " + str(split) + ".txt").readlines())))
@@ -109,7 +111,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(exp_name='future_window=0')
 
 
 
