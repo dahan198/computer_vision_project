@@ -17,9 +17,10 @@ def exponential_descrease(idx_decoder, p=3):
 
 
 class AttentionHelper(nn.Module):
-    def __init__(self):
+    def __init__(self, future_window=0):
         super(AttentionHelper, self).__init__()
         self.softmax = nn.Softmax(dim=-1)
+        self.future_window = future_window
 
     def scalar_dot_att(self, proj_query, proj_key, proj_val, padding_mask):
         '''
@@ -36,10 +37,13 @@ class AttentionHelper(nn.Module):
         assert c1 == c2
 
         energy = torch.bmm(proj_query.permute(0, 2, 1), proj_key)  # out of shape (B, L1, L2)
+        bounded_future_mask = torch.tril(padding_mask, diagonal=l1 // 2 + self.future_window)
+        energy *= bounded_future_mask
         attention = energy / np.sqrt(c1)
-        attention = attention + torch.log(padding_mask + 1e-6)  # mask the zero paddings. log(1e-6) for zero paddings
+        attention = attention + torch.log(bounded_future_mask + 1e-6)  # log(1e-6) for zero paddings
+        # attention = attention + torch.log(padding_mask + 1e-6)
         attention = self.softmax(attention)
-        attention = attention * padding_mask
+        # attention = attention * padding_mask
         attention = attention.permute(0, 2, 1)
         out = torch.bmm(proj_val, attention)
         return out, attention
