@@ -75,7 +75,7 @@ def main(exp_name):
         if not os.path.exists(results_dir):
             os.makedirs(results_dir)
 
-        trainer = Trainer(num_layers, 2, 2, num_f_maps, features_dim, num_classes, channel_mask_rate)
+        trainer = Trainer(num_layers, 2, 2, num_f_maps, features_dim, num_classes, channel_mask_rate, future_window=future_window)
         if args.action == "train":
             config = dict(
                 split=split,
