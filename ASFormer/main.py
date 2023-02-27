@@ -18,7 +18,7 @@ parser.add_argument('--action', default='train')
 parser.add_argument('--model_dir', default='models')
 parser.add_argument('--result_dir', default='results')
 
-nums_epochs = [100, 100, 100, 100, 100]
+nums_epochs = [2, 2, 2, 2, 2]
 lrs = [0.0005, 0.0005, 0.0005, 0.0005, 0.0005]
 nums_layers = [10, 10, 10, 10, 10]
 nums_f_maps = [64, 64, 64, 64, 64]
@@ -26,13 +26,13 @@ channel_mask_rates = [0.3, 0.3, 0.3, 0.3, 0.3]
 future_window = 0
 
 # use the full temporal resolution @ 15fps
-sample_rate = 1
+sample_rate = 2
 
 args = parser.parse_args()
 
 features_dim = 1280
 bz = 1
-all_data_files = set(map(lambda x: x.split('.npy')[0], os.listdir("../APAS/" + "features/fold0")))
+# all_data_files = set(map(lambda x: x.split('.npy')[0], os.listdir("../APAS/" + "features/fold0")))
 gt_path = "../APAS/transcriptions_gestures/"
 vid_list_file = "../APAS/transcriptions_gestures/"
 mapping_file = "../APAS/mapping_gestures.txt"
@@ -51,13 +51,16 @@ num_classes = len(actions_dict)
 
 
 def main(exp_name):
-    for split in range(5):
+    print(f"future_window = {future_window}")
+    for split in range(2):
 
         num_epochs = nums_epochs[split]
+        print(f"Running for {num_epochs} epochs")
         num_layers = nums_layers[split]
         num_f_maps = nums_f_maps[split]
         lr = lrs[split]
         channel_mask_rate = channel_mask_rates[split]
+        all_data_files = set(map(lambda x: x.split('.npy')[0], os.listdir("../APAS/" + f"features/fold{split}")))
 
         valid_files = set(
             map(lambda x: x.split('.csv')[0], (open("../APAS/folds/valid " + str(split) + ".txt").readlines())))
@@ -67,8 +70,8 @@ def main(exp_name):
         train_data_len = len(train_files) // bz
 
         features_path = "../APAS/" + "features/fold" + str(split) + "/"
-        model_dir = "./{}/".format(args.model_dir) + "/split_" + str(split)
-        results_dir = "./{}/".format(args.result_dir) + "/split_" + str(split)
+        model_dir = "./{}/".format(args.model_dir) + "/future_window_" + str(future_window) + "/split_" + str(split)
+        results_dir = "./{}/".format(args.result_dir) + "/future_window_" + str(future_window) + "_15epochs/split_" + str(split)
 
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
@@ -86,9 +89,11 @@ def main(exp_name):
                 lr=lr,
                 future_window=future_window
             )
-
+            # wandb.init(group="experiment_1", job_type="eval")
             wandb.init(
                 project="train_report",
+                group=f"future_window_{future_window}",
+                job_type=f"fold_{split}",
                 config=config,
             )
 
@@ -103,14 +108,18 @@ def main(exp_name):
 
         if args.action == "predict":
             config = dict(
+                split=split,
                 future_window=future_window
             )
             wandb.init(
                 project="test_report",
+                group=f"future_window_{future_window}",
+                job_type=f"fold_{split}",
                 config=config,
             )
             batch_gen_tst = BatchGenerator(num_classes, actions_dict, gt_path, features_path, sample_rate)
             batch_gen_tst.read_data(test_files)
+            print(f'using model {num_epochs}')
             trainer.predict(model_dir, results_dir, features_path, batch_gen_tst, num_epochs, actions_dict, sample_rate,
                             wandb)
 
@@ -118,7 +127,7 @@ def main(exp_name):
 
 
 if __name__ == '__main__':
-    main(exp_name='future_window=0')
+    main(exp_name=f'future_window={future_window}')
 
 
 

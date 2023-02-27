@@ -366,7 +366,8 @@ class Trainer:
                 batch_input, batch_target, mask, vids = batch_gen.next_batch(batch_size, False)
                 batch_input, batch_target, mask = batch_input.to(device), batch_target.to(device), mask.to(device)
                 optimizer.zero_grad()
-                length = 500
+                length = 10
+                # ps = self.model(batch_input, mask)
                 ps = self.model(batch_input[:, :, :length], mask[:, :, :length])
                 batch_target = batch_target[:, :length]
                 mask = mask[:, :, :length]
@@ -402,7 +403,7 @@ class Trainer:
             es = float(es) / i
             f1s = self.f1s(overlap, tp, fp, fn)
             train_loss = epoch_loss / len(batch_gen.list_of_examples)
-            acc = float(correct) / total
+            acc = (float(correct) / total) * 100
             print("[epoch %d]: epoch loss = %f acc = %.4f edit_score = %.4f F1@10 = %.4f F1@25 = %.4f F1@50 = %.4f" %
                   (epoch + 1, train_loss, acc, es, f1s[0], f1s[1], f1s[2]))
             run.log({"train/loss": train_loss, "train/accuracy": acc, "train/edit_score": es,
@@ -446,7 +447,7 @@ class Trainer:
                     fn[s] += fn1
                 total += torch.sum(mask[:, 0, :]).item()
 
-        acc = float(correct) / total
+        acc = (float(correct) / total) * 100
         es = float(es) / i
         f1s = self.f1s(overlap, tp, fp, fn)
         loss_tst = loss / len(batch_gen_tst.list_of_examples)
