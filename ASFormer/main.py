@@ -18,12 +18,13 @@ parser.add_argument('--action', default='train')
 parser.add_argument('--model_dir', default='models')
 parser.add_argument('--result_dir', default='results')
 
-nums_epochs = [2, 2, 2, 2, 2]
+nums_epochs = [15, 15, 15, 15, 15]
 lrs = [0.0005, 0.0005, 0.0005, 0.0005, 0.0005]
 nums_layers = [10, 10, 10, 10, 10]
 nums_f_maps = [64, 64, 64, 64, 64]
 channel_mask_rates = [0.3, 0.3, 0.3, 0.3, 0.3]
-future_window = 0
+NO_WINDOW = 999999999999
+# future_window = 5
 
 # use the full temporal resolution @ 15fps
 sample_rate = 2
@@ -49,8 +50,17 @@ for k, v in actions_dict.items():
     index2label[v] = k
 num_classes = len(actions_dict)
 
+def reset_wandb_env():
+    exclude = {
+        "WANDB_PROJECT",
+        "WANDB_ENTITY",
+        "WANDB_API_KEY",
+    }
+    for k, v in os.environ.items():
+        if k.startswith("WANDB_") and k not in exclude:
+            del os.environ[k]
 
-def main(exp_name):
+def main(future_window):
     print(f"future_window = {future_window}")
     for split in range(2):
 
@@ -90,14 +100,17 @@ def main(exp_name):
                 future_window=future_window
             )
             # wandb.init(group="experiment_1", job_type="eval")
+            # reset_wandb_env()
+            future_description = f"future_window_{future_window}" if future_window != NO_WINDOW else "no_window"
             wandb.init(
                 project="train_report",
-                group=f"future_window_{future_window}",
+                group=future_description,
                 job_type=f"fold_{split}",
+                name=f"{future_description}_fold_{split}",
                 config=config,
             )
 
-            wandb.run.name = exp_name + "fold" + str(split)
+            # wandb.run.name = exp_name + "fold" + str(split)
             batch_gen = BatchGenerator(num_classes, actions_dict, gt_path, features_path, sample_rate)
             batch_gen.read_data(train_files)
 
@@ -123,11 +136,23 @@ def main(exp_name):
             trainer.predict(model_dir, results_dir, features_path, batch_gen_tst, num_epochs, actions_dict, sample_rate,
                             wandb)
 
-    wandb.finish()
+        wandb.finish(quiet=True)
 
 
 if __name__ == '__main__':
-    main(exp_name=f'future_window={future_window}')
+    fps = 30 // sample_rate
+    windows = [NO_WINDOW,
+               0,
+               fps,
+               2 * fps,
+               3 * fps,
+               4 * fps,
+               5 * fps,
+               7 * fps,
+               10 * fps,
+               30 * fps]
+    for future_window in windows:
+        main(future_window)
 
 
 

@@ -366,11 +366,11 @@ class Trainer:
                 batch_input, batch_target, mask, vids = batch_gen.next_batch(batch_size, False)
                 batch_input, batch_target, mask = batch_input.to(device), batch_target.to(device), mask.to(device)
                 optimizer.zero_grad()
-                length = 10
-                # ps = self.model(batch_input, mask)
-                ps = self.model(batch_input[:, :, :length], mask[:, :, :length])
-                batch_target = batch_target[:, :length]
-                mask = mask[:, :, :length]
+                # length = 10
+                ps = self.model(batch_input, mask)
+                # ps = self.model(batch_input[:, :, :length], mask[:, :, :length])
+                # batch_target = batch_target[:, :length]
+                # mask = mask[:, :, :length]
 
                 loss = 0
                 for p in ps:
@@ -409,9 +409,9 @@ class Trainer:
             run.log({"train/loss": train_loss, "train/accuracy": acc, "train/edit_score": es,
                      "train/F1@10": f1s[0], "train/F1@25": f1s[1], "train/F1@50": f1s[2]})
 
-            self.test(batch_gen_tst, epoch, run)
-            torch.save(self.model.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + ".model")
-            torch.save(optimizer.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + ".opt")
+            loss_tst, acc_tst = self.test(batch_gen_tst, epoch, run)
+            torch.save(self.model.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + f"-val_loss-{loss_tst}_val_acc-{acc_tst}.model")
+            # torch.save(optimizer.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + ".opt")
 
     def test(self, batch_gen_tst, epoch, run):
         self.model.eval()
@@ -458,6 +458,7 @@ class Trainer:
 
         self.model.train()
         batch_gen_tst.reset()
+        return loss_tst, acc
 
     def predict(self, model_dir, results_dir, features_path, batch_gen_tst, epoch, actions_dict, sample_rate, run):
         self.model.eval()
