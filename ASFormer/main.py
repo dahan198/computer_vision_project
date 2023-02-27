@@ -108,6 +108,7 @@ def main(future_window):
                 job_type=f"fold_{split}",
                 name=f"{future_description}_fold_{split}",
                 config=config,
+                entity='vision_project'
             )
 
             # wandb.run.name = exp_name + "fold" + str(split)
@@ -129,6 +130,7 @@ def main(future_window):
                 group=f"future_window_{future_window}",
                 job_type=f"fold_{split}",
                 config=config,
+                entity='vision_project'
             )
             batch_gen_tst = BatchGenerator(num_classes, actions_dict, gt_path, features_path, sample_rate)
             batch_gen_tst.read_data(test_files)
@@ -145,12 +147,12 @@ if __name__ == '__main__':
                0,
                fps,
                2 * fps,
-               3 * fps,
-               4 * fps,
-               5 * fps,
-               7 * fps,
-               10 * fps,
-               30 * fps]
+               3 * fps]
+               # 4 * fps,
+               # 5 * fps,
+               # 7 * fps,
+               # 10 * fps,
+               # 30 * fps]
     for future_window in windows:
         main(future_window)
 
