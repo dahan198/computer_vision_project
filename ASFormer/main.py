@@ -62,7 +62,7 @@ def reset_wandb_env():
 
 def main(future_window):
     print(f"future_window = {future_window}")
-    for split in range(2):
+    for split in range(5):
 
         num_epochs = nums_epochs[split]
         print(f"Running for {num_epochs} epochs")
