@@ -63,7 +63,8 @@ num_classes = len(actions_dict)
 def main(future_window):
     print(f"future_window = {future_window}")
     print(f"device: {device}")
-    for split in range(5):
+    num_folds = 5
+    for split in range(num_folds):
 
         num_epochs = nums_epochs[split]
         print(f"Running for {num_epochs} epochs")
