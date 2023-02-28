@@ -62,6 +62,7 @@ num_classes = len(actions_dict)
 
 def main(future_window):
     print(f"future_window = {future_window}")
+    print(f"device: {device}")
     for split in range(5):
 
         num_epochs = nums_epochs[split]
