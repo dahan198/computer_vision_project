@@ -23,7 +23,7 @@ lrs = [0.0005, 0.0005, 0.0005, 0.0005, 0.0005]
 nums_layers = [10, 10, 10, 10, 10]
 nums_f_maps = [64, 64, 64, 64, 64]
 channel_mask_rates = [0.3, 0.3, 0.3, 0.3, 0.3]
-NO_WINDOW = 999999999999
+NO_WINDOW = 999_999_999_999
 # future_window = 5
 
 # use the full temporal resolution @ 15fps
@@ -50,15 +50,15 @@ for k, v in actions_dict.items():
     index2label[v] = k
 num_classes = len(actions_dict)
 
-def reset_wandb_env():
-    exclude = {
-        "WANDB_PROJECT",
-        "WANDB_ENTITY",
-        "WANDB_API_KEY",
-    }
-    for k, v in os.environ.items():
-        if k.startswith("WANDB_") and k not in exclude:
-            del os.environ[k]
+# def reset_wandb_env():
+#     exclude = {
+#         "WANDB_PROJECT",
+#         "WANDB_ENTITY",
+#         "WANDB_API_KEY",
+#     }
+#     for k, v in os.environ.items():
+#         if k.startswith("WANDB_") and k not in exclude:
+#             del os.environ[k]
 
 def main(future_window):
     print(f"future_window = {future_window}")
@@ -79,9 +79,10 @@ def main(future_window):
         train_files = all_data_files - valid_files - test_files
         train_data_len = len(train_files) // bz
 
+        future_description = f"future_window_{future_window}" if future_window != NO_WINDOW else "all future"
         features_path = "../APAS/" + "features/fold" + str(split) + "/"
-        model_dir = "./{}/".format(args.model_dir) + "/future_window_" + str(future_window) + "/split_" + str(split)
-        results_dir = "./{}/".format(args.result_dir) + "/future_window_" + str(future_window) + "_15epochs/split_" + str(split)
+        model_dir = "./{}/".format(args.model_dir) + "/" + str(future_description) + "/split_" + str(split)
+        results_dir = "./{}/".format(args.result_dir) + "/future_window_" + str(future_window) + "/split_" + str(split)
 
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
@@ -101,7 +102,7 @@ def main(future_window):
             )
             # wandb.init(group="experiment_1", job_type="eval")
             # reset_wandb_env()
-            future_description = f"future_window_{future_window}" if future_window != NO_WINDOW else "no_window"
+
             wandb.init(
                 project="train_report",
                 group=future_description,
@@ -143,11 +144,11 @@ def main(future_window):
 
 if __name__ == '__main__':
     fps = 30 // sample_rate
-    windows = [NO_WINDOW,
-               0,
-               fps,
-               2 * fps,
-               3 * fps]
+    windows = [NO_WINDOW]
+               # 0,
+               # fps,
+               # 2 * fps,
+               # 3 * fps]
                # 4 * fps,
                # 5 * fps,
                # 7 * fps,
