@@ -106,7 +106,7 @@ def main(future_window):
             # reset_wandb_env()
 
             wandb.init(
-                project="test_train_report2",
+                project="train_report",
                 group=future_description,
                 job_type=f"fold_{split}",
                 name=f"{future_description}_fold_{split}",
