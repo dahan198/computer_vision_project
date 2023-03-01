@@ -7,6 +7,7 @@ import numpy as np
 import random
 from grid_sampler import GridSampler, TimeWarpLayer
 
+
 class BatchGenerator(object):
     def __init__(self, num_classes, actions_dict, gt_path, features_path, sample_rate):
         self.index = 0

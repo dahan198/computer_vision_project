@@ -84,7 +84,7 @@ def main(future_window):
         future_description = f"future_window_{future_window}" if future_window != NO_WINDOW else "all future"
         features_path = "../APAS/" + "features/fold" + str(split) + "/"
         model_dir = "./{}/".format(args.model_dir) + "/" + str(future_description) + "/split_" + str(split)
-        results_dir = "./{}/".format(args.result_dir) + "/future_window_" + str(future_window) + "/split_" + str(split)
+        results_dir = "./{}/".format(args.result_dir) + "/" + str(future_description) + "/split_" + str(split)
 
         if not os.path.exists(model_dir):
             os.makedirs(model_dir)
@@ -146,7 +146,7 @@ def main(future_window):
 
 if __name__ == '__main__':
     fps = 30 // sample_rate
-    windows = [NO_WINDOW]
+    windows = [0]#[NO_WINDOW]
                # 0,
                # fps,
                # 2 * fps,
@@ -158,6 +158,4 @@ if __name__ == '__main__':
                # 30 * fps]
     for future_window in windows:
         main(future_window)
-
-
 
