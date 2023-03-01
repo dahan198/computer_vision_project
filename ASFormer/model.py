@@ -406,10 +406,16 @@ class Trainer:
             acc = (float(correct) / total) * 100
             print("[epoch %d]: epoch loss = %f acc = %.4f edit_score = %.4f F1@10 = %.4f F1@25 = %.4f F1@50 = %.4f" %
                   (epoch + 1, train_loss, acc, es, f1s[0], f1s[1], f1s[2]))
-            run.log({"train/loss": train_loss, "train/accuracy": acc, "train/edit_score": es,
-                     "train/F1@10": f1s[0], "train/F1@25": f1s[1], "train/F1@50": f1s[2]})
 
-            loss_tst, acc_tst = self.test(batch_gen_tst, epoch, run)
+            loss_tst, acc_tst, es_tst, f1s_tst = self.test(batch_gen_tst, epoch, run)
+
+            run.log({"train/loss": train_loss, "train/accuracy": acc, "train/edit_score": es,
+                     "train/F1@10": f1s[0], "train/F1@25": f1s[1], "train/F1@50": f1s[2],
+
+                     "validation/loss": loss_tst, "validation/accuracy": acc_tst, "validation/edit_score": es_tst,
+                     "validation/F1@10": f1s_tst[0], "validation/F1@25": f1s_tst[1], "validation/F1@50": f1s_tst[2]
+                     })
+
             torch.save(self.model.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + f"-val_loss-{loss_tst}_val_acc-{acc_tst}.model")
             # torch.save(optimizer.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + ".opt")
 
@@ -417,7 +423,7 @@ class Trainer:
         self.model.eval()
         correct = 0
         total = 0
-        es = 0
+        es_tst = 0
         overlap = [.1, .25, .5]
         tp, fp, fn = np.zeros(3), np.zeros(3), np.zeros(3)
         if_warp = False  # When testing, always false
@@ -439,7 +445,7 @@ class Trainer:
                 correct += ((predicted == batch_target).float() * mask[:, 0, :].squeeze(1)).sum().item()
                 predicted = predicted.detach().cpu().numpy().flatten()
                 batch_target = batch_target.detach().cpu().numpy().flatten()
-                es += edit_score(predicted, batch_target)
+                es_tst += edit_score(predicted, batch_target)
                 for s in range(len(overlap)):
                     tp1, fp1, fn1 = f_score(predicted, batch_target, overlap[s])
                     tp[s] += tp1
@@ -447,18 +453,18 @@ class Trainer:
                     fn[s] += fn1
                 total += torch.sum(mask[:, 0, :]).item()
 
-        acc = (float(correct) / total) * 100
-        es = float(es) / i
-        f1s = self.f1s(overlap, tp, fp, fn)
+        acc_tst = (float(correct) / total) * 100
+        es_tst = float(es_tst) / i
+        f1s_tst = self.f1s(overlap, tp, fp, fn)
         loss_tst = loss / len(batch_gen_tst.list_of_examples)
         print("[epoch %d]: tst loss = %.4f acc = %.4f edit_score = %.4f F1@10 = %.4f F1@25 = %.4f F1@50 = %.4f" %
-              (epoch + 1, loss_tst, acc, es, f1s[0], f1s[1], f1s[2]))
-        run.log({"validation/loss": loss_tst, "validation/accuracy": acc, "validation/edit_score": es,
-                 "validation/F1@10": f1s[0], "validation/F1@25": f1s[1], "validation/F1@50": f1s[2]})
+              (epoch + 1, loss_tst, acc_tst, es_tst, f1s_tst[0], f1s_tst[1], f1s_tst[2]))
+        # run.log({"validation/loss": loss_tst, "validation/accuracy": acc_tst, "validation/edit_score": es_tst,
+        #          "validation/F1@10": f1s_tst[0], "validation/F1@25": f1s_tst[1], "validation/F1@50": f1s_tst[2]})
 
         self.model.train()
         batch_gen_tst.reset()
-        return loss_tst, acc
+        return loss_tst, acc_tst, es_tst, f1s_tst
 
     def predict(self, model_dir, results_dir, features_path, batch_gen_tst, epoch, actions_dict, sample_rate, run):
         self.model.eval()
