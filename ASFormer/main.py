@@ -100,13 +100,13 @@ def main(future_window):
                 num_f_maps=num_f_maps,
                 channel_mask_rate=channel_mask_rate,
                 lr=lr,
-                future_window=future_window
+                future_window=future_description
             )
             # wandb.init(group="experiment_1", job_type="eval")
             # reset_wandb_env()
 
             wandb.init(
-                project="train_report",
+                project="test_train_report2",
                 group=future_description,
                 job_type=f"fold_{split}",
                 name=f"{future_description}_fold_{split}",
@@ -158,7 +158,6 @@ if __name__ == '__main__':
                # 30 * fps]
     for future_window in windows:
         main(future_window)
-
 
 
 
