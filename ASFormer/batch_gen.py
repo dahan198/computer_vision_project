@@ -29,6 +29,7 @@ class BatchGenerator(object):
 
     def read_data(self, vid_list_file):
         self.list_of_examples = list(vid_list_file)
+        self.list_of_examples.sort()
         self.gts = [self.gt_path + vid + ".txt" for vid in self.list_of_examples]
         self.features = [self.features_path + vid + '.npy' for vid in self.list_of_examples]
         self.my_shuffle()
