@@ -175,10 +175,10 @@ class AttLayer(nn.Module):
         final_mask = self.window_mask.repeat(m_batchsize * nb, 1, 1) * padding_mask
 
         output, attention = self.att_helper.scalar_dot_att(q, k, v, final_mask)
-        output = self.conv_out(F.relu(output))
-
         output = output.reshape(m_batchsize, nb, -1, self.bl).permute(0, 2, 1, 3).reshape(m_batchsize, -1, nb * self.bl)
+        output = self.conv_out(F.relu(output))
         output = output[:, :, 0:L]
+
         return output * mask[:, 0:1, :]
 
 
@@ -188,7 +188,8 @@ class MultiHeadAttLayer(nn.Module):
         #         assert v_dim % num_head == 0
         self.conv_out = nn.Conv1d(v_dim * num_head, v_dim, 1)
         self.layers = nn.ModuleList(
-            [copy.deepcopy(AttLayer(q_dim, k_dim, v_dim, r1, r2, r3, bl, stage, att_type, future_window=future_window)) for i in range(num_head)])
+            [copy.deepcopy(AttLayer(q_dim, k_dim, v_dim, r1, r2, r3, bl, stage, att_type, future_window=future_window))
+             for i in range(num_head)])
         self.dropout = nn.Dropout(p=0.5)
 
     def forward(self, x1, x2, mask):
@@ -201,7 +202,7 @@ class ConvFeedForward(nn.Module):
     def __init__(self, dilation, in_channels, out_channels):
         super(ConvFeedForward, self).__init__()
         self.layer = nn.Sequential(
-            nn.Conv1d(in_channels, out_channels, 3, padding=dilation, dilation=dilation),
+            nn.Conv1d(in_channels, out_channels, 1, dilation=dilation),
             nn.ReLU()
         )
 
@@ -236,7 +237,8 @@ class AttModule(nn.Module):
 
     def forward(self, x, f, mask):
         out = self.feed_forward(x)
-        out = self.alpha * self.att_layer(self.instance_norm(out), f, mask) + out
+        norm = self.instance_norm(out.permute(0, 2, 1)).permute(0, 2, 1)
+        out = self.alpha * self.att_layer(norm, f, mask) + out
         out = self.conv_1x1(out)
         out = self.dropout(out)
         return (x + out) * mask[:, 0:1, :]
@@ -264,11 +266,13 @@ class PositionalEncoding(nn.Module):
 
 
 class Encoder(nn.Module):
-    def __init__(self, num_layers, r1, r2, num_f_maps, input_dim, num_classes, channel_masking_rate, att_type, alpha, future_window):
+    def __init__(self, num_layers, r1, r2, num_f_maps, input_dim, num_classes, channel_masking_rate, att_type, alpha,
+                 future_window):
         super(Encoder, self).__init__()
         self.conv_1x1 = nn.Conv1d(input_dim, num_f_maps, 1)  # fc layer
         self.layers = nn.ModuleList(
-            [AttModule(2 ** i, num_f_maps, num_f_maps, r1, r2, att_type, 'encoder', alpha, future_window=future_window) for i in  # 2**i
+            [AttModule(2 ** i, num_f_maps, num_f_maps, r1, r2, att_type, 'encoder', alpha, future_window=future_window)
+             for i in  # 2**i
              range(num_layers)])
 
         self.conv_out = nn.Conv1d(num_f_maps, num_classes, 1)
@@ -301,7 +305,8 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()  # self.position_en = PositionalEncoding(d_model=num_f_maps)
         self.conv_1x1 = nn.Conv1d(input_dim, num_f_maps, 1)
         self.layers = nn.ModuleList(
-            [AttModule(2 ** i, num_f_maps, num_f_maps, r1, r2, att_type, 'decoder', alpha, future_window=future_window) for i in  # 2 ** i
+            [AttModule(2 ** i, num_f_maps, num_f_maps, r1, r2, att_type, 'decoder', alpha, future_window=future_window)
+             for i in  # 2 ** i
              range(num_layers)])
         self.conv_out = nn.Conv1d(num_f_maps, num_classes, 1)
 
@@ -316,13 +321,15 @@ class Decoder(nn.Module):
 
 
 class MyTransformer(nn.Module):
-    def __init__(self, num_decoders, num_layers, r1, r2, num_f_maps, input_dim, num_classes, channel_masking_rate, future_window):
+    def __init__(self, num_decoders, num_layers, r1, r2, num_f_maps, input_dim, num_classes, channel_masking_rate,
+                 future_window):
         super(MyTransformer, self).__init__()
         self.encoder = Encoder(num_layers, r1, r2, num_f_maps, input_dim, num_classes, channel_masking_rate,
                                att_type='sliding_att', alpha=1, future_window=future_window)
         self.decoders = nn.ModuleList([copy.deepcopy(
             Decoder(num_layers, r1, r2, num_f_maps, num_classes, num_classes, att_type='sliding_att',
-                    alpha=exponential_descrease(s), future_window=future_window)) for s in range(num_decoders)])  # num_decoders
+                    alpha=exponential_descrease(s), future_window=future_window)) for s in
+            range(num_decoders)])  # num_decoders
 
     def forward(self, x, mask):
         out, feature = self.encoder(x, mask)
@@ -336,8 +343,10 @@ class MyTransformer(nn.Module):
 
 
 class Trainer:
-    def __init__(self, num_layers, r1, r2, num_f_maps, input_dim, num_classes, channel_masking_rate, future_window):
-        self.model = MyTransformer(3, num_layers, r1, r2, num_f_maps, input_dim, num_classes, channel_masking_rate, future_window=future_window)
+    def __init__(self, num_layers, r1, r2, num_f_maps, input_dim, num_classes, channel_masking_rate,
+                 future_window, decoders_num=3):
+        self.model = MyTransformer(decoders_num, num_layers, r1, r2, num_f_maps, input_dim, num_classes,
+                                   channel_masking_rate, future_window=future_window)
         self.ce = nn.CrossEntropyLoss(ignore_index=-100)
 
         print('Model Size: ', sum(p.numel() for p in self.model.parameters()))
@@ -416,7 +425,8 @@ class Trainer:
                      "validation/F1@10": f1s_tst[0], "validation/F1@25": f1s_tst[1], "validation/F1@50": f1s_tst[2]
                      })
 
-            torch.save(self.model.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + f"-val_loss-{loss_tst}_val_acc-{acc_tst}.model")
+            torch.save(self.model.state_dict(),
+                       save_dir + "/epoch-" + str(epoch + 1) + f"-val_loss-{loss_tst}_val_acc-{acc_tst}.model")
             # torch.save(optimizer.state_dict(), save_dir + "/epoch-" + str(epoch + 1) + ".opt")
 
     def test(self, batch_gen_tst, epoch, run):
@@ -466,17 +476,29 @@ class Trainer:
         batch_gen_tst.reset()
         return loss_tst, acc_tst, es_tst, f1s_tst
 
-    def predict(self, model_dir, results_dir, features_path, batch_gen_tst, epoch, actions_dict, sample_rate, run):
+    def predict(self, model_dir, results_dir, features_path, batch_gen_tst, epoch, actions_dict, sample_rate, run,
+                future_window=0, plot=None, future_description=None):
         self.model.eval()
+        correct = 0
+        total = 0
+        es = 0
+        overlap = [.1, .25, .5]
+        tp, fp, fn = np.zeros(3), np.zeros(3), np.zeros(3)
+        if_warp = False  # When testing, always false
+        i = 0
         with torch.no_grad():
             self.model.to(device)
-            self.model.load_state_dict(torch.load(model_dir + "/epoch-" + str(epoch) + ".model"))
+            # self.model.load_state_dict(torch.load(model_dir + "/epoch-" + str(epoch) + ".model"))
+            self.model.load_state_dict(torch.load(model_dir + "/best.model"))
             batch_gen_tst.reset()
             my_data = []
+            vid_names = []
+            all_images = []
 
             while batch_gen_tst.has_next():
                 batch_input, batch_target, mask, vids = batch_gen_tst.next_batch(1)
                 vid = vids[0]
+                vid_names.append(vid)
                 features = np.load(features_path + vid.split('.')[0] + '.npy')
                 features = features[:, ::sample_rate]
 
@@ -497,9 +519,20 @@ class Trainer:
                                                        confidence.tolist(),
                                                        batch_target.tolist(), predicted.tolist())
                     images.append(img)
+                all_images.append(images)
 
-                my_data.append([vid, wandb.Image(images[0]), wandb.Image(images[1]), wandb.Image(images[2]),
-                                wandb.Image(images[3])])
+                _, predicted = torch.max(predictions.data[-1], 1)
+                predicted = predicted.detach().cpu().flatten()
+                correct += ((predicted == batch_target).float() * mask[:, 0, :].squeeze(1)).sum().item()
+                predicted = predicted.numpy()
+                batch_target = batch_target.detach().cpu().numpy().flatten()
+                es += edit_score(predicted, batch_target)
+                for s in range(len(overlap)):
+                    tp1, fp1, fn1 = f_score(predicted, batch_target, overlap[s])
+                    tp[s] += tp1
+                    fp[s] += fp1
+                    fn[s] += fn1
+                total += torch.sum(mask[:, 0, :]).item()
 
                 recognition = []
                 for i in range(len(predicted)):
@@ -511,9 +544,21 @@ class Trainer:
                 f_ptr.write("### Frame level recognition: ###\n")
                 f_ptr.write(' '.join(recognition))
                 f_ptr.close()
-            columns = ["image", "stage 1", "stage 2", "stage 3", "stage 4"]
-            run.log({"fold" + str(run.run.config['split']) + "/results":
-                         wandb.Table(data=my_data, columns=columns)})
+            es = float(es) / i
+            f1s = self.f1s(overlap, tp, fp, fn)
+            acc = (float(correct) / total) * 100
+            print(f"future_window{future_window}", " accuracy: ", acc, " edit_score: ", es,
+                  " F1@10: ", f1s[0], " F1@25: ", f1s[1], " F1@50: ", f1s[2])
+            future_description = 3 if str(future_description) == 'all future' else future_window / 15
+            plot['accuracy'].append([future_description, acc])
+            plot['edit distance'].append([future_description, es])
+            plot['F1@10'].append([future_description, f1s[0]])
+            plot['F1@25'].append([future_description, f1s[1]])
+            plot['F1@50'].append([future_description, f1s[2]])
+            argmin = min(range(len(vid_names)), key=lambda i: vid_names[i])
+            images = all_images[argmin]
+            return [vid_names[argmin], future_description, wandb.Image(images[0]), wandb.Image(images[1]),
+                    wandb.Image(images[2])], plot
 
     @staticmethod
     def f1s(overlap, tp, fp, fn):

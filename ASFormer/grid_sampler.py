@@ -1,7 +1,7 @@
 '''
     This file is a implementation of Time Series Wrapper.
     Specifically, it samples N frames from a video with N frames according to a truncated normal distribution. Therefore, it can be regarded as local acceleration or deceleration within a video.
-    It can serve as a strong data augmentation for action segnemtation task by setting the 'if_warp=True' in batch_gen.BatchGenerator.next_batch. We do not use this trick in our paper, but it does give better results :).
+    It can serve as a strong data augmentation for action segnemtation task by setting the 'if_warp=True' in batch_gen.BatchGenerator.next_batch. We do not use this trick in our paper, but it does give better results_old :).
 '''
 import numpy as np
 from scipy.stats import truncnorm

@@ -217,7 +217,7 @@ def main():
     splits = 5
 
     parser.add_argument('--split', default=0, type=int)
-    parser.add_argument('--result_dir', default='results')
+    parser.add_argument('--result_dir', default='results_old')
 
     args = parser.parse_args()
 
