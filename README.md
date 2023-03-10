@@ -10,7 +10,7 @@ The dataset contains 96 videos of different lengths. In every video, one person 
 
 
 <p align="center" width="100%">
-    <img width="100%" src="https://user-images.githubusercontent.com/30556126/224326369-a57a9865-c539-4418-823c-2f0e0c1f0ba1.png">
+    <img width="50%" src="https://user-images.githubusercontent.com/30556126/224326369-a57a9865-c539-4418-823c-2f0e0c1f0ba1.png">
 </p>
 
 
