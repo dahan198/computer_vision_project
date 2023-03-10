@@ -75,7 +75,7 @@ We conducted seven experiments with varying future window sizes: 0s, 0.2s, 0.47s
     <img width="80%" src="https://user-images.githubusercontent.com/30556126/224338044-66fdc760-883a-4c4e-b2ac-382a899ca603.png">
     <img width="70%" src="https://user-images.githubusercontent.com/30556126/224377203-f8c29036-ce36-424d-8fc3-b85e16d8ea7e.png">
 </p>
-[dfd](https://www.dropbox.com/home/computer%20vision%20videos?preview=video1.mp4)
+
 ## 7. Discussion
 <p align="justify"> 
 We conducted a series of experiments to evaluate the performance of our online algorithm with varying future window sizes. We also compared our online algorithm to an offline mode. The results of our experiments showed that the accuracy and loss were improved as the future window size increased, while the segmentation metrics were less consistent with the window size.
