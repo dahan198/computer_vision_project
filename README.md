@@ -19,17 +19,27 @@ The dataset contains 96 videos of different lengths. In every video, one person 
 
 ## 3. Architecture
 ### 3.1. Architecture Description
+<p align="justify"> 
 ASFormer is a transformer-based architecture designed specifically for action segmentation tasks. While transformers have had significant breakthroughs in natural language processing, they have been less commonly used for video tasks, especially with action segmentation tasks. The challenges in action segmentation tasks that ASFormer aims to address are:
 
 - **Lack of inductive biases** - Usually, transformer models requires a lot of data in order to achieve good results, and the action segmentation task is known for its small-size datasets, which causes the lack of inductive bias. To address this issue, additional temporal convolutions were applied (Dilated Conv) in each layer used as inductive priors, utilizing the temporal structure of the problem.
 - **Difficulty in forming effective representations** - Due to the long input sequence. Hierarchical self-attention and cross-attention layers were used to address this issue. This representation captures global and local representations, enables high convergence, and reduces total space and time complexity.
 - **Does not meet the refinement demand of the action segmentation task** - To address this issue, additional decoders were added. Each decoder uses a cross-attention mechanism to bring in information from the last encoder/decoder.
+</p>
 
-(arch. image)
+
+<p align="center" width="100%">
+    <img width="80%" src="https://user-images.githubusercontent.com/30556126/224334825-09734491-6fef-4299-9ccb-552fa8864e34.png">
+</p>
 
 ## 3.2. Our Adaptation
 In the original ASFormer, information sharing between frames only occurs through hierarchical self/cross attention. To achieve the online property, and ensure that only future data within a specific window is considered, we zero out all neighboring frames found after the future window.
-(image)
+
+
+<p align="center" width="100%">
+    <img width="70%" src="https://user-images.githubusercontent.com/30556126/224334975-843c88aa-06e2-4937-a9d9-d4463b5f6c02.png">
+</p>
+The figure illustrates our adaptation for a future window of size two. Each node in the figure represents a frame, and the number on the node indicates the frame's location in the video length. Each row of nodes represents a level in the hierarchy. The pink nodes in the figure were zeroed out to ensure that only the relevant frames in the future window are considered. Upper: illustrates our adaptation for the frame in the 0-location. Lower: illustrates our adaptation for the frame in the 20-location.
 
 ## 4. Metrics
 For the segmentation metric, we used the segmental overlaps F1@k where k ∈ {10, 25, 50} and the segmental edit distance score.
