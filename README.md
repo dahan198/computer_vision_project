@@ -63,6 +63,7 @@ We observed that the model converged quickly during training, maybe due to the A
     <img width="60%" src="https://user-images.githubusercontent.com/30556126/224337798-3cfb6c5c-fba5-468b-a866-d50126523cc1.png">
     <img width="80%" src="https://user-images.githubusercontent.com/30556126/224337814-5ef6e85b-71f4-487e-bb19-e4d5e919c53a.png">
     <img width="50%" src="https://user-images.githubusercontent.com/30556126/224337827-51d56212-3eee-418f-8058-9f7abf2c5e51.png">
+    <img width="70%" src="https://user-images.githubusercontent.com/30556126/224377203-f8c29036-ce36-424d-8fc3-b85e16d8ea7e.png">
 </p>
 
 
