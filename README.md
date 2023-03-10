@@ -17,7 +17,7 @@ The dataset contains 96 videos of different lengths. In every video, one person 
 </p>
 
 <p align="center" width="100%">
-    <img width="50%" src="https://user-images.githubusercontent.com/30556126/224329116-f08bbe8e-38dc-433c-82e9-fd368e8c6643.png">
+    <img width="70%" src="https://user-images.githubusercontent.com/30556126/224329116-f08bbe8e-38dc-433c-82e9-fd368e8c6643.png">
 </p>
 
 ## 3. Architecture
