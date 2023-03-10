@@ -40,7 +40,7 @@ In the original ASFormer, information sharing between frames only occurs through
 </p>
 
 <p align="center" width="100%">
-    <img width="70%" src="https://user-images.githubusercontent.com/30556126/224334975-843c88aa-06e2-4937-a9d9-d4463b5f6c02.png">
+    <img width="60%" src="https://user-images.githubusercontent.com/30556126/224334975-843c88aa-06e2-4937-a9d9-d4463b5f6c02.png">
 </p>
 <p align="justify">
 The figure illustrates our adaptation for a future window of size two. Each node in the figure represents a frame, and the number on the node indicates the frame's location in the video length. Each row of nodes represents a level in the hierarchy. The pink nodes in the figure were zeroed out to ensure that only the relevant frames in the future window are considered. Upper: illustrates our adaptation for the frame in the 0-location. Lower: illustrates our adaptation for the frame in the 20-location.
@@ -59,14 +59,19 @@ However, the segmentation metric values were less consistent with the window siz
 We observed that the model converged quickly during training, maybe due to the ASFormer architecture's power or the problem's relatively low complexity. These results present that our online algorithm with limited future window sizes can achieve comparable performance to the offline approach with all future information in this problem.
 </p>
 
-(res1)
-(res2)
-(res3)
+<p align="center" width="100%">
+    <img width="60%" src="https://user-images.githubusercontent.com/30556126/224337798-3cfb6c5c-fba5-468b-a866-d50126523cc1.png">
+    <img width="60%" src="https://user-images.githubusercontent.com/30556126/224337814-5ef6e85b-71f4-487e-bb19-e4d5e919c53a.png">
+    <img width="60%" src="https://user-images.githubusercontent.com/30556126/224337827-51d56212-3eee-418f-8058-9f7abf2c5e51.png">
+</p>
+
 
 ## 6. Trade-Off
 <p align="justify">
 We conducted seven experiments with varying future window sizes: 0s, 0.2s, 0.47s, 0.73s, 1s, 2s, and all-future. We observed a trade-off between the algorithm's performance and the future window size. As the future window size increased, the algorithm's performance improved for the frame-wise metric. However, for segmentation metrics, we found that there is a trade-off for smaller future window sizes. For larger future window sizes, the algorithm's performance did not improve and even worsened.
 </p>
-(Trade-Off image)
+
+<img width="60%" src="https://user-images.githubusercontent.com/30556126/224338044-66fdc760-883a-4c4e-b2ac-382a899ca603.png">
+
 
 
