@@ -72,7 +72,7 @@ We conducted seven experiments with varying future window sizes: 0s, 0.2s, 0.47s
 </p>
 
 <p align="center" width="100%">
-<img width="70%" src="https://user-images.githubusercontent.com/30556126/224338044-66fdc760-883a-4c4e-b2ac-382a899ca603.png">
+<img width="80%" src="https://user-images.githubusercontent.com/30556126/224338044-66fdc760-883a-4c4e-b2ac-382a899ca603.png">
 </p>
 
 ## 7. Discussion
