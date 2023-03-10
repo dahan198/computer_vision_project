@@ -71,7 +71,14 @@ We observed that the model converged quickly during training, maybe due to the A
 We conducted seven experiments with varying future window sizes: 0s, 0.2s, 0.47s, 0.73s, 1s, 2s, and all-future. We observed a trade-off between the algorithm's performance and the future window size. As the future window size increased, the algorithm's performance improved for the frame-wise metric. However, for segmentation metrics, we found that there is a trade-off for smaller future window sizes. For larger future window sizes, the algorithm's performance did not improve and even worsened.
 </p>
 
+<p align="center" width="100%">
 <img width="60%" src="https://user-images.githubusercontent.com/30556126/224338044-66fdc760-883a-4c4e-b2ac-382a899ca603.png">
+</p>
 
+## 7. Discussion
+<p align="justify"> 
+We conducted a series of experiments to evaluate the performance of our online algorithm with varying future window sizes. We also compared our online algorithm to an offline mode. The results of our experiments showed that the accuracy and loss were improved as the future window size increased, while the segmentation metrics were less consistent with the window size.
+Our online algorithm with limited future window sizes can achieve comparable performance to the offline approach in this particular problem. Furthermore, our project demonstrates how the ASFormer architecture can be adapted to online mode. It can be very useful for other transformer architectures and other attention-based mechanisms from many fields, and thus it can expand beyond computer vision tasks.
+</p>
 
 
